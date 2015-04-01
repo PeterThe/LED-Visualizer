@@ -7,13 +7,13 @@
 #define DISPLAY_RATE 10.0
 #define DISPLAY_MOD 50.0
 
-void importFreq(double raw[], double refine[], int songLength);//FINISH_ME
+void importFreq(double refine[], int songLength);//FINISH_ME
 void playDisplay(double refine[], int songLength);
 double minFreq(double array[]);
 double maxFreq(double array[]);
 double avgFreq(double array[]);
 
-void refineArray(double array[], length);
+void refineArray(double array[], int length);
 
 int main(void)
 {
@@ -24,47 +24,40 @@ int main(void)
 
     songLength = songLength / SAMPLE_RATE * DISPLAY_RATE;
 
-    double rawFreq[(int)(SAMPLE_RATE/DISPLAY_RATE)];
-
     double refineFreq[songLength];
 
-    importFreq(rawFreq, refineFreq, songLength);
+    importFreq(refineFreq, songLength);
 
-    //refineArray(refineFreq);
+    refineArray(refineFreq, songLength);
 
     playDisplay(refineFreq, songLength);
-
 
     return 0;
 }
 
-void importFreq(double raw[], double refine[], int songLength){//FINISH_ME
+void importFreq(double refine[], int songLength){//FINISH_ME
 
     srand(time(NULL));
 
     int i, j;
-    double rawImport=0.0;
+    double rawAvg=0.0;
+    double rawImport;
 
     double max, min, average;
 
     for(i=0;i< songLength;i++){
         for(j=0;j<SAMPLE_RATE/DISPLAY_RATE;j++){//importing sound
-            //raw[j] = 2.0*(double)rand()/(double)RAND_MAX - 1;//test
-            scanf("%lf\n", &raw[j]);//real import
+            //rawImport++;//test (double)rand()
+            scanf("%lf\n", &rawImport);//real import
 
-            rawImport += fabs(raw[j]);
+            rawAvg += fabs(rawImport);
         }
 
-        refine[i] = ((rawImport / (SAMPLE_RATE/DISPLAY_RATE)) * DISPLAY_MOD);//change to be percent based off of the average value of the song.
-
-        //find min, max, and average
-
-        rawImport =0.0;
+        //refine[i] = ((rawAvg / (SAMPLE_RATE/DISPLAY_RATE)) * DISPLAY_MOD);//previous
+        refine[i] = (rawAvg / (SAMPLE_RATE/DISPLAY_RATE));//new TEST_ME
+        rawAvg =0.0;
     }
     printf("Frequency imported\n");//test
-
-
-
 }
 
 void playDisplay(double refine[], int songLength){
@@ -112,12 +105,17 @@ double avgFreq(double array[]){
     return avg;
 }
 
-void refineArray(double array[], length){//FINISH_ME
+void refineArray(double array[], int length){//TEST_ME
     double min = minFreq(array);
     double max = maxFreq(array);
     double difference = max - min;
+    double mod = difference/50.0;
     int i;
     for(i=0;i<length;i++){
         array[i]-=min;
     }
+    for(i=0;i<length;i++){
+        array[i]/=mod;
+    }
+    printf("DEBUG: avgFreq %lf\n", avgFreq(array));//test
 }
