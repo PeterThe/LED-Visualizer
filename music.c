@@ -5,9 +5,10 @@
 
 #define SAMPLE_RATE 44100.0 //read from file samples per second
 #define DISPLAY_RATE 10.0
-#define DISPLAY_MOD 50.0
+#define DISPLAY_MOD 50.0//recommended 50.0
+#define DISPLAY_STEPS 4.0//set to 4.0 for led grid, 50.0 for computer
 
-void importFreq(double refine[], int songLength);//FINISH_ME
+void importFreq(double refine[], int songLength);
 void playDisplay(double refine[], int songLength);
 double minFreq(double array[]);
 double maxFreq(double array[]);
@@ -47,25 +48,25 @@ void importFreq(double refine[], int songLength){//FINISH_ME
 
     for(i=0;i< songLength;i++){
         for(j=0;j<SAMPLE_RATE/DISPLAY_RATE;j++){//importing sound
-            //rawImport++;//test (double)rand()
+            //rawImport += (double)(rand()%5-rand()%5);//test (double)rand()
             scanf("%lf\n", &rawImport);//real import
 
             rawAvg += fabs(rawImport);
         }
-
-        //refine[i] = ((rawAvg / (SAMPLE_RATE/DISPLAY_RATE)) * DISPLAY_MOD);//previous
-        refine[i] = (rawAvg / (SAMPLE_RATE/DISPLAY_RATE));//new TEST_ME
+        refine[i] = (rawAvg / (SAMPLE_RATE/DISPLAY_RATE));
         rawAvg =0.0;
     }
-    printf("Frequency imported\n");//test
+    printf("DEBUG: Frequency imported\n");
 }
 
 void playDisplay(double refine[], int songLength){
     int i = 0, j = 0;
     double t = clock()/((double)CLOCKS_PER_SEC);
+    printf("DEBUG: %lf / %lf\n", minFreq(refine), maxFreq(refine));
+
     while(i<songLength){
         if(t <= clock()/((double)CLOCKS_PER_SEC) - 1/DISPLAY_RATE){
-            for(j=0;j<refine[i];j++){
+            for(j=0;j<((int)refine[i])*DISPLAY_MOD/DISPLAY_STEPS;j++){
                 printf("*");
             }
             printf("\n");
@@ -74,7 +75,7 @@ void playDisplay(double refine[], int songLength){
             t = clock()/((double)CLOCKS_PER_SEC);
         }
     }
-    printf("end");//test
+    printf("DEBUG: end");//test
 }
 
 double minFreq(double array[]){
@@ -105,11 +106,11 @@ double avgFreq(double array[]){
     return avg;
 }
 
-void refineArray(double array[], int length){//TEST_ME
+void refineArray(double array[], int length){
     double min = minFreq(array);
     double max = maxFreq(array);
     double difference = max - min;
-    double mod = difference/50.0;
+    double mod = difference/DISPLAY_STEPS;
     int i;
     for(i=0;i<length;i++){
         array[i]-=min;
@@ -117,5 +118,5 @@ void refineArray(double array[], int length){//TEST_ME
     for(i=0;i<length;i++){
         array[i]/=mod;
     }
-    printf("DEBUG: avgFreq %lf\n", avgFreq(array));//test
+    printf("DEBUG: avgFreq %lf\n", avgFreq(array));
 }
