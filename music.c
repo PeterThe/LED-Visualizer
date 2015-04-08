@@ -7,6 +7,7 @@
 #define DISPLAY_RATE 10.0
 #define DISPLAY_MOD 50.0//recommended 50.0
 #define DISPLAY_STEPS 4.0//set to 4.0 for led grid, 50.0 for computer
+#define LED_LENGTH 8
 
 void importFreq(double refine[], int songLength);
 void playDisplay(double refine[], int songLength);
@@ -15,11 +16,13 @@ double maxFreq(double array[]);
 double avgFreq(double array[]);
 
 void refineArray(double array[], int length);
+void updateArray(int display[], int length, double next);
+void resetDisplay(int display[], int length);
+void feed(int display[], double array[], int songLength);
 
 int main(void)
 {
     int songLength;//10*seconds
-
     //songLength = 20 * SAMPLE_RATE;//test
     scanf("%d\n", &songLength);//real
 
@@ -119,4 +122,33 @@ void refineArray(double array[], int length){
         array[i]/=mod;
     }
     printf("DEBUG: avgFreq %lf\n", avgFreq(array));
+}
+void resetDisplay(int display[], int length){//TEST_ME
+    int i;
+    for(i=0;i<length;i++){
+        display[i]=0;
+    }
+}
+void updateArray(int display[], int length, double next){//TEST_ME
+    int i;
+    for(i=0;i<length-1;i++){
+        display[i]=display[i+1];
+    }
+    display[i] = next;
+}
+
+void feed(int display[], double array[], int songLength){
+    int i = 0, j = 0;
+    double t = clock()/((double)CLOCKS_PER_SEC);
+
+    while(i<songLength){
+        if(t <= clock()/((double)CLOCKS_PER_SEC) - 1/DISPLAY_RATE){
+            updateArray(display, LED_LENGTH, array[i]);
+            for(j=0;j<LED_LENGTH;j++){
+                printf("%d",display[j]);
+            }
+            i++;
+            t = clock()/((double)CLOCKS_PER_SEC);
+        }
+    }
 }
