@@ -4,25 +4,20 @@
 #include <math.h>
 
 #define SAMPLE_RATE 44100.0 //read from file samples per second
-#define DISPLAY_RATE 10.0
+#define DISPLAY_RATE 10.0//updates per second
 #define DISPLAY_MOD 50.0//recommended 50.0
 #define DISPLAY_STEPS 4.0//set to 4.0 for led grid, 50.0 for computer
-#define LED_LENGTH 8
 
 void importFreq(double refine[], int songLength);
 void playDisplay(double refine[], int songLength);
+void refineArray(double array[], int length);
 double minFreq(double array[]);
 double maxFreq(double array[]);
-double avgFreq(double array[]);
-
-void refineArray(double array[], int length);
-void updateArray(int display[], int length, double next);
-void resetDisplay(int display[], int length);
-void feed(int display[], double array[], int songLength);
 
 int main(void)
 {
-    int songLength;//10*seconds
+    int songLength;//(DISPLAY_RATE)*(length in seconds)
+
     //songLength = 20 * SAMPLE_RATE;//test
     scanf("%d\n", &songLength);//real
 
@@ -36,10 +31,12 @@ int main(void)
 
     playDisplay(refineFreq, songLength);
 
+    printf("End");
+
     return 0;
 }
 
-void importFreq(double refine[], int songLength){//FINISH_ME
+void importFreq(double refine[], int songLength){//takes the average of the song volume over a sections that are 1/DISPLAY_RATE seconds
 
     srand(time(NULL));
 
@@ -47,25 +44,21 @@ void importFreq(double refine[], int songLength){//FINISH_ME
     double rawAvg=0.0;
     double rawImport;
 
-    double max, min, average;
-
     for(i=0;i< songLength;i++){
-        for(j=0;j<SAMPLE_RATE/DISPLAY_RATE;j++){//importing sound
+        for(j=0;j<SAMPLE_RATE/DISPLAY_RATE;j++){
             //rawImport += (double)(rand()%5-rand()%5);//test (double)rand()
-            scanf("%lf\n", &rawImport);//real import
-
+            scanf("%lf\n", &rawImport);//real
             rawAvg += fabs(rawImport);
         }
+
         refine[i] = (rawAvg / (SAMPLE_RATE/DISPLAY_RATE));
         rawAvg =0.0;
     }
-    printf("DEBUG: Frequency imported\n");
 }
 
-void playDisplay(double refine[], int songLength){
+void playDisplay(double refine[], int songLength){//prints stars based on the refined array and DISPLAY constants
     int i = 0, j = 0;
     double t = clock()/((double)CLOCKS_PER_SEC);
-    printf("DEBUG: %lf / %lf\n", minFreq(refine), maxFreq(refine));
 
     while(i<songLength){
         if(t <= clock()/((double)CLOCKS_PER_SEC) - 1/DISPLAY_RATE){
@@ -77,78 +70,42 @@ void playDisplay(double refine[], int songLength){
 
             t = clock()/((double)CLOCKS_PER_SEC);
         }
-    }
-    printf("DEBUG: end");//test
+    }   
 }
 
-double minFreq(double array[]){
-    double min;
+double minFreq(double array[]){//finds the min of the array
     int i;
+    double min;
+
     for(i=0;array[i]!= '\0';i++){
         if(min > array[i]) min = array[i];
     }
+
     return min;
 }
 
-double maxFreq(double array[]){
-    double max;
+double maxFreq(double array[]){//finds the max of the array
     int i;
+    double max;
+
     for(i=0;array[i]!= '\0';i++){
         if(max < array[i]) max = array[i];
     }
+
     return max;
 }
 
-double avgFreq(double array[]){
-    double avg;
+void refineArray(double array[], int length){//converts array to have a range from 0 to DISPLAY_STEPS
     int i;
-    for(i=0;array[i]!= '\0';i++){
-        avg+= array[i];
-    }
-    avg = avg/i;
-    return avg;
-}
-
-void refineArray(double array[], int length){
     double min = minFreq(array);
     double max = maxFreq(array);
+
     double difference = max - min;
     double mod = difference/DISPLAY_STEPS;
-    int i;
+
     for(i=0;i<length;i++){
         array[i]-=min;
-    }
-    for(i=0;i<length;i++){
+        array[i]+=(difference/10);
         array[i]/=mod;
-    }
-    printf("DEBUG: avgFreq %lf\n", avgFreq(array));
-}
-void resetDisplay(int display[], int length){//TEST_ME
-    int i;
-    for(i=0;i<length;i++){
-        display[i]=0;
-    }
-}
-void updateArray(int display[], int length, double next){//TEST_ME
-    int i;
-    for(i=0;i<length-1;i++){
-        display[i]=display[i+1];
-    }
-    display[i] = next;
-}
-
-void feed(int display[], double array[], int songLength){
-    int i = 0, j = 0;
-    double t = clock()/((double)CLOCKS_PER_SEC);
-
-    while(i<songLength){
-        if(t <= clock()/((double)CLOCKS_PER_SEC) - 1/DISPLAY_RATE){
-            updateArray(display, LED_LENGTH, array[i]);
-            for(j=0;j<LED_LENGTH;j++){
-                printf("%d",display[j]);
-            }
-            i++;
-            t = clock()/((double)CLOCKS_PER_SEC);
-        }
     }
 }
